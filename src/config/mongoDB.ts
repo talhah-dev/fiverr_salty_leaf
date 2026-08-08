@@ -5,6 +5,7 @@ if (process.platform === "win32") {
     dns.setServers(["1.1.1.1", "8.8.8.8"])
 }
 
+
 const MONGODB_URI = process.env.MONGODB_URI
 
 if (!MONGODB_URI) {

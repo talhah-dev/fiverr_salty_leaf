@@ -1,8 +1,11 @@
 "use client"
 
 import React, { FormEvent, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function AdminLoginPage() {
+    const router = useRouter()
+
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
@@ -13,10 +16,31 @@ export default function AdminLoginPage() {
         setError("")
         setIsLoading(true)
 
-        // TODO: replace with real auth call once Better Auth is wired up
-        console.log("Admin login attempt:", { email, password })
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            })
 
-        setIsLoading(false)
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Invalid email or password")
+            }
+
+            router.push("/admin/dashboard")
+            router.refresh()
+        } catch (err) {
+            console.error("Login failed:", err)
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Something went wrong, please try again"
+            )
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { upload } from "@vercel/blob/client"
 import {
     BarChart3,
     Image as ImageIcon,
@@ -11,6 +12,7 @@ import {
     UploadCloud,
     Trash2,
     X,
+    Loader2,
 } from "lucide-react"
 
 const navLinks = [
@@ -20,43 +22,13 @@ const navLinks = [
 ]
 
 type GalleryImage = {
-    id: string
-    src: string
-    uploadedAt: string
+    _id: string
+    url: string
+    alt: string
+    category: string
+    order: number
+    createdAt: string
 }
-
-const initialImages: GalleryImage[] = [
-    {
-        id: "1",
-        src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop",
-        uploadedAt: "2026-08-01",
-    },
-    {
-        id: "2",
-        src: "https://images.unsplash.com/photo-1478146896981-b80fe463b330?q=80&w=600&auto=format&fit=crop",
-        uploadedAt: "2026-07-28",
-    },
-    {
-        id: "3",
-        src: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=600&auto=format&fit=crop",
-        uploadedAt: "2026-07-28",
-    },
-    {
-        id: "4",
-        src: "https://images.unsplash.com/photo-1507504031003-b417219a0fde?q=80&w=600&auto=format&fit=crop",
-        uploadedAt: "2026-07-20",
-    },
-    {
-        id: "5",
-        src: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=600&auto=format&fit=crop",
-        uploadedAt: "2026-07-15",
-    },
-    {
-        id: "6",
-        src: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=600&auto=format&fit=crop",
-        uploadedAt: "2026-07-10",
-    },
-]
 
 type PendingFile = {
     id: string
@@ -64,14 +36,57 @@ type PendingFile = {
     previewUrl: string
 }
 
+function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString("en-AU", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    })
+}
+
 export default function AdminGalleryPage() {
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const [images, setImages] = useState<GalleryImage[]>(initialImages)
+
+    const [images, setImages] = useState<GalleryImage[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [loadError, setLoadError] = useState("")
+
     const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([])
     const [isDragging, setIsDragging] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
+    const [uploadError, setUploadError] = useState("")
+
     const [deleteTarget, setDeleteTarget] = useState<GalleryImage | null>(null)
     const [isModalMounted, setIsModalMounted] = useState(false)
     const [isModalVisible, setIsModalVisible] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+
+    const fetchImages = async () => {
+        setIsLoading(true)
+        setLoadError("")
+
+        try {
+            const response = await fetch("/api/gallery", { cache: "no-store" })
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Failed to load gallery")
+            }
+
+            setImages(result.data)
+        } catch (err) {
+            console.error("Failed to fetch gallery images:", err)
+            setLoadError(
+                err instanceof Error ? err.message : "Something went wrong"
+            )
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchImages()
+    }, [])
 
     const addFiles = (fileList: FileList | null) => {
         if (!fileList) return
@@ -91,9 +106,45 @@ export default function AdminGalleryPage() {
         setPendingFiles((prev) => prev.filter((item) => item.id !== id))
     }
 
-    const handleUploadClick = () => {
-        console.log("Uploading files:", pendingFiles.map((p) => p.file.name))
-        setPendingFiles([])
+    const handleUploadClick = async () => {
+        if (pendingFiles.length === 0) return
+
+        setIsUploading(true)
+        setUploadError("")
+
+        try {
+            for (const item of pendingFiles) {
+                const blob = await upload(item.file.name, item.file, {
+                    access: "public",
+                    handleUploadUrl: "/api/gallery/upload",
+                })
+
+                const response = await fetch("/api/gallery", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: blob.url }),
+                })
+
+                const result = await response.json()
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || `Failed to save ${item.file.name}`
+                    )
+                }
+            }
+
+            pendingFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl))
+            setPendingFiles([])
+            await fetchImages()
+        } catch (err) {
+            console.error("Upload failed:", err)
+            setUploadError(
+                err instanceof Error ? err.message : "Upload failed, please try again"
+            )
+        } finally {
+            setIsUploading(false)
+        }
     }
 
     const openDeleteModal = (image: GalleryImage) => {
@@ -109,12 +160,29 @@ export default function AdminGalleryPage() {
         }, 250)
     }
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (!deleteTarget) return
 
-        console.log("Deleting image:", deleteTarget.id)
-        setImages((prev) => prev.filter((img) => img.id !== deleteTarget.id))
-        closeDeleteModal()
+        setIsDeleting(true)
+
+        try {
+            const response = await fetch(`/api/gallery/${deleteTarget._id}`, {
+                method: "DELETE",
+            })
+
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Failed to delete image")
+            }
+
+            setImages((prev) => prev.filter((img) => img._id !== deleteTarget._id))
+            closeDeleteModal()
+        } catch (err) {
+            console.error("Delete failed:", err)
+        } finally {
+            setIsDeleting(false)
+        }
     }
 
     useEffect(() => {
@@ -188,7 +256,9 @@ export default function AdminGalleryPage() {
                         </h2>
 
                         <p className="mt-1 font-[family-name:var(--font-inter)] text-sm text-[#8a8678]">
-                            {images.length} images currently live on the site
+                            {isLoading
+                                ? "Loading images..."
+                                : `${images.length} images currently live on the site`}
                         </p>
                     </div>
 
@@ -261,11 +331,21 @@ export default function AdminGalleryPage() {
                             <button
                                 type="button"
                                 onClick={handleUploadClick}
-                                className="border border-[#25251f] px-5 py-2 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-[#25251f] transition-all duration-300 hover:bg-[#25251f] hover:text-[#f8f5ef]"
+                                disabled={isUploading}
+                                className="flex items-center gap-2 border border-[#25251f] px-5 py-2 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-[#25251f] transition-all duration-300 hover:bg-[#25251f] hover:text-[#f8f5ef] disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Upload All
+                                {isUploading && (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                )}
+                                {isUploading ? "Uploading..." : "Upload All"}
                             </button>
                         </div>
+
+                        {uploadError && (
+                            <p className="mb-4 font-[family-name:var(--font-inter)] text-xs text-red-700">
+                                {uploadError}
+                            </p>
+                        )}
 
                         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
                             {pendingFiles.map((item) => (
@@ -279,14 +359,16 @@ export default function AdminGalleryPage() {
                                         className="h-full w-full object-cover"
                                     />
 
-                                    <button
-                                        type="button"
-                                        onClick={() => removePendingFile(item.id)}
-                                        aria-label="Remove"
-                                        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                                    >
-                                        <X className="h-3.5 w-3.5" strokeWidth={2} />
-                                    </button>
+                                    {!isUploading && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removePendingFile(item.id)}
+                                            aria-label="Remove"
+                                            className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                                        >
+                                            <X className="h-3.5 w-3.5" strokeWidth={2} />
+                                        </button>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -298,35 +380,76 @@ export default function AdminGalleryPage() {
                         Current Gallery
                     </p>
 
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                        {images.map((image) => (
-                            <div
-                                key={image.id}
-                                className="group relative aspect-square overflow-hidden rounded-md border border-[#e3e0d6]"
+                    {isLoading && (
+                        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-[#e3e0d6] bg-[#faf9f6] py-20">
+                            <Loader2
+                                className="h-6 w-6 animate-spin text-[#8a8678]"
+                                strokeWidth={1.75}
+                            />
+                            <p className="font-[family-name:var(--font-inter)] text-sm text-[#8a8678]">
+                                Loading gallery...
+                            </p>
+                        </div>
+                    )}
+
+                    {!isLoading && loadError && (
+                        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 py-20 text-center">
+                            <p className="font-[family-name:var(--font-inter)] text-sm text-red-800">
+                                {loadError}
+                            </p>
+                            <button
+                                type="button"
+                                onClick={fetchImages}
+                                className="border border-red-800 px-5 py-2 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-red-800 transition-colors duration-200 hover:bg-red-800 hover:text-white"
                             >
-                                <img
-                                    src={image.src}
-                                    alt="Gallery"
-                                    className="h-full w-full object-cover"
-                                />
+                                Try Again
+                            </button>
+                        </div>
+                    )}
 
-                                <div className="absolute inset-0 flex items-end justify-between bg-gradient-to-t from-black/50 via-transparent to-transparent p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                                    <span className="font-[family-name:var(--font-inter)] text-[10px] text-white">
-                                        {image.uploadedAt}
-                                    </span>
+                    {!isLoading && !loadError && images.length === 0 && (
+                        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#d8d6cf] bg-[#faf9f6] py-20 text-center">
+                            <ImageIcon className="h-8 w-8 text-[#c9c5b8]" strokeWidth={1.5} />
+                            <p className="font-[family-name:var(--font-cormorant)] text-xl text-[#1f211d]">
+                                No images yet
+                            </p>
+                            <p className="font-[family-name:var(--font-inter)] text-sm text-[#8a8678]">
+                                Upload your first gallery image above.
+                            </p>
+                        </div>
+                    )}
 
-                                    <button
-                                        type="button"
-                                        onClick={() => openDeleteModal(image)}
-                                        aria-label="Delete image"
-                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-red-800 transition-colors duration-200 hover:bg-white"
-                                    >
-                                        <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-                                    </button>
+                    {!isLoading && !loadError && images.length > 0 && (
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                            {images.map((image) => (
+                                <div
+                                    key={image._id}
+                                    className="group relative aspect-square overflow-hidden rounded-md border border-[#e3e0d6]"
+                                >
+                                    <img
+                                        src={image.url}
+                                        alt={image.alt || "Gallery"}
+                                        className="h-full w-full object-cover"
+                                    />
+
+                                    <div className="absolute inset-0 flex items-end justify-between bg-gradient-to-t from-black/50 via-transparent to-transparent p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                        <span className="font-[family-name:var(--font-inter)] text-[10px] text-white">
+                                            {formatDate(image.createdAt)}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => openDeleteModal(image)}
+                                            aria-label="Delete image"
+                                            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-red-800 transition-colors duration-200 hover:bg-white"
+                                        >
+                                            <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </main>
 
@@ -354,7 +477,7 @@ export default function AdminGalleryPage() {
 
                         <div className="mt-6 overflow-hidden rounded-md">
                             <img
-                                src={deleteTarget.src}
+                                src={deleteTarget.url}
                                 alt="Gallery"
                                 className="h-32 w-full object-cover"
                             />
@@ -364,7 +487,8 @@ export default function AdminGalleryPage() {
                             <button
                                 type="button"
                                 onClick={closeDeleteModal}
-                                className="flex-1 border border-[#d8d6cf] py-2.5 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-[#55554e] transition-colors duration-200 hover:bg-[#eeece3]"
+                                disabled={isDeleting}
+                                className="flex-1 border border-[#d8d6cf] py-2.5 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-[#55554e] transition-colors duration-200 hover:bg-[#eeece3] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Cancel
                             </button>
@@ -372,9 +496,13 @@ export default function AdminGalleryPage() {
                             <button
                                 type="button"
                                 onClick={confirmDelete}
-                                className="flex-1 bg-red-800 py-2.5 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-white transition-colors duration-200 hover:bg-red-900"
+                                disabled={isDeleting}
+                                className="flex flex-1 items-center justify-center gap-2 bg-red-800 py-2.5 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-white transition-colors duration-200 hover:bg-red-900 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Delete
+                                {isDeleting && (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                )}
+                                {isDeleting ? "Deleting..." : "Delete"}
                             </button>
                         </div>
                     </div>
