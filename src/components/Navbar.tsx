@@ -22,7 +22,10 @@ export default function Navbar() {
                     href="/"
                     className="font-[family-name:var(--font-cormorant)] text-5xl font-light tracking-[-0.04em] text-white sm:text-7xl"
                 >
-                    Salty Leaf
+                    {/* Salty Leaf */}
+
+                    <img src="/logo.png" className="h-24 brightness-0 invert" alt="" />
+
                 </Link>
 
                 <nav className="hidden items-center gap-10 lg:flex">
