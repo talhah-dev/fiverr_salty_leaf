@@ -8,17 +8,17 @@ const MotionLink = motion.create(Link)
 const categories = [
     {
         title: "WEDDINGS",
-        image: "/home1.jpg",
+        image: "/home2.jpg",
         href: "/weddings",
     },
     {
         title: "FAREWELLS",
-        image: "/home2.jpg",
+        image: "/home3.jpg",
         href: "/farewells",
     },
     {
         title: "EVENTS",
-        image: "/home3.jpg",
+        image: "/home1.jpg",
         href: "/events",
     },
 ]
