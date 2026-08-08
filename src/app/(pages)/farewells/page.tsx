@@ -77,7 +77,7 @@ export default function FarewellsPage() {
 
                         <motion.div variants={fadeUp} transition={{ duration: 0.8, ease: "easeOut" }}>
                             <Link
-                                href="#enquire"
+                                href="/contact"
                                 className="mt-3 inline-block font-[family-name:var(--font-cormorant)] text-2xl uppercase tracking-wide text-white transition-opacity duration-300 hover:opacity-60"
                             >
                                 Enquire
