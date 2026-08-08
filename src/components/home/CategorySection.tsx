@@ -6,17 +6,17 @@ import { motion } from "motion/react"
 const categories = [
     {
         title: "WEDDINGS",
-        image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        image: "/home1.jpg",
         href: "/weddings",
     },
     {
         title: "FAREWELLS",
-        image: "https://plus.unsplash.com/premium_photo-1675720042825-84e20074f34a?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjl8fHdlZGRpbmd8ZW58MHx8MHx8fDA%3D",
+        image: "/home2.jpg",
         href: "/farewells",
     },
     {
         title: "EVENTS",
-        image: "https://plus.unsplash.com/premium_photo-1673897888993-a1db844c2ca1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDd8fHxlbnwwfHx8fHw%3D",
+        image: "/home3.jpg",
         href: "/events",
     },
 ]

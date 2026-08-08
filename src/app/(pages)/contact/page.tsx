@@ -79,12 +79,12 @@ export default function ContactPage() {
                     initial={{ scale: 1.15 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                    src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=1800&auto=format&fit=crop"
+                    src="/contactbg.png"
                     alt="Floral wedding arrangement"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
 
-                <div className="absolute inset-0 bg-black/20" />
+                <div className="absolute inset-0 bg-black/30" />
 
                 <motion.div
                     initial="hidden"
@@ -433,12 +433,12 @@ export default function ContactPage() {
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-                    src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=1800&auto=format&fit=crop"
+                    src="/farewellbg.png"
                     alt="Beautiful flowers"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
 
-                <div className="absolute inset-0 bg-black/10" />
+                <div className="absolute inset-0 bg-black/30" />
 
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}

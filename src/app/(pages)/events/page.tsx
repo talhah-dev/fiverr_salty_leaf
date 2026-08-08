@@ -235,10 +235,13 @@ export default function EventsPage() {
                     initial={{ scale: 1.15 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                    src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1800&auto=format&fit=crop"
+                    src="/event1.jpeg"
                     alt="Elegant event setting"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
+
+                <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+
 
                 <motion.div
                     initial="hidden"
@@ -310,7 +313,7 @@ export default function EventsPage() {
                         className="w-full"
                     >
                         <img
-                            src="https://images.unsplash.com/photo-1507504031003-b417219a0fde?q=80&w=1000&auto=format&fit=crop"
+                            src="/event3.jpeg"
                             alt="Event floral styling"
                             className="h-[500px] w-full object-cover sm:h-[600px] lg:h-[680px]"
                         />
@@ -426,12 +429,12 @@ export default function EventsPage() {
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-                    src="https://images.unsplash.com/photo-1478146896981-b80fe463b330?q=80&w=1800&auto=format&fit=crop"
+                    src="/event2.jpeg"
                     alt="Beautiful event floral arrangement"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
 
-                <div className="absolute inset-0 bg-black/10" />
+                <div className="absolute inset-0 bg-black/30" />
 
                 <div className="absolute inset-0 flex items-center justify-center">
                     <motion.a
