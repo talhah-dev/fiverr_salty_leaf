@@ -52,6 +52,9 @@ export default function FarewellsPage() {
                     className="absolute inset-0 h-full w-full object-cover"
                 />
 
+                <div className="absolute inset-0 md:bg-black/0 bg-black/35" />
+
+
                 <motion.div
                     initial="hidden"
                     animate="visible"

@@ -24,7 +24,7 @@ export default function Navbar() {
                 >
                     {/* Salty Leaf */}
 
-                    <img src="/logo.png" className="h-24 brightness-0 invert" alt="" />
+                    <img src="/logo.png" className="md:h-24 h-16 brightness-0 invert" alt="" />
 
                 </Link>
 

@@ -26,7 +26,7 @@ export default function page() {
                     alt="Wedding ceremony"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/0" />
+                <div className="absolute inset-0 md:bg-black/0 bg-black/35" />
 
                 <motion.div
                     initial="hidden"

@@ -244,7 +244,8 @@ export default function EventsPage() {
                     className="absolute inset-0 h-full w-full object-cover"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+                <div className="absolute md:block hidden inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+                <div className="absolute md:hidden inset-0 bg-black/35" />
 
 
                 <motion.div
