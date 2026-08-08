@@ -13,6 +13,7 @@ import {
     Phone,
     MapPin,
     Calendar,
+    Loader2,
 } from "lucide-react"
 
 const navLinks = [
@@ -22,7 +23,7 @@ const navLinks = [
 ]
 
 type Enquiry = {
-    id: string
+    _id: string
     name: string
     email: string
     phone: string
@@ -30,79 +31,13 @@ type Enquiry = {
     eventDate: string
     venue: string
     message: string
-    submittedAt: string
-    status: "New" | "Read"
+    createdAt: string
+    status: "new" | "read"
 }
 
-const enquiries: Enquiry[] = [
-    {
-        id: "1",
-        name: "Sarah Mitchell",
-        email: "sarah.mitchell@example.com",
-        phone: "0412 345 678",
-        eventType: "Wedding",
-        eventDate: "2026-11-14",
-        venue: "Mandurah Foreshore",
-        message:
-            "Hi, we're planning a spring wedding for around 90 guests and love your natural, textured arrangements. Would love a quote for bridal bouquet, ceremony arch and table centrepieces.",
-        submittedAt: "2026-08-06T09:24:00",
-        status: "New",
-    },
-    {
-        id: "2",
-        name: "James Okafor",
-        email: "j.okafor@example.com",
-        phone: "0433 221 908",
-        eventType: "Corporate Event",
-        eventDate: "2026-09-02",
-        venue: "Peel Business Centre",
-        message:
-            "Looking for reception florals for a product launch, roughly 150 attendees. Company colours are navy and gold if that helps with concepts.",
-        submittedAt: "2026-08-05T16:02:00",
-        status: "New",
-    },
-    {
-        id: "3",
-        name: "Priya Nair",
-        email: "priya.nair@example.com",
-        phone: "0455 019 762",
-        eventType: "Farewell",
-        eventDate: "2026-08-20",
-        venue: "St. Anne's Chapel",
-        message:
-            "We would like to arrange tribute flowers for my father's service. He loved native Australian flowers, particularly banksias and grevillea, if that's possible to include.",
-        submittedAt: "2026-08-04T11:47:00",
-        status: "Read",
-    },
-    {
-        id: "4",
-        name: "Tom & Ellie Bishop",
-        email: "bishopwedding@example.com",
-        phone: "0421 887 340",
-        eventType: "Wedding",
-        eventDate: "2027-03-06",
-        venue: "Fairbridge Village",
-        message:
-            "Early enquiry for a wedding next year. We're after a rustic, wildflower-style look. Could we book a consultation sometime in the next month?",
-        submittedAt: "2026-08-02T14:15:00",
-        status: "Read",
-    },
-    {
-        id: "5",
-        name: "Grace Thompson",
-        email: "grace.t@example.com",
-        phone: "0409 556 213",
-        eventType: "Birthday",
-        eventDate: "2026-08-30",
-        venue: "Private residence, Falcon",
-        message:
-            "Turning 60 and want soft pink and cream arrangements for the dining table and entrance. Small gathering, around 20 people.",
-        submittedAt: "2026-07-30T08:53:00",
-        status: "Read",
-    },
-]
-
 function formatDate(iso: string) {
+    if (!iso) return "—"
+
     return new Date(iso).toLocaleDateString("en-AU", {
         day: "numeric",
         month: "short",
@@ -119,14 +54,79 @@ function formatSubmittedAt(iso: string) {
     })
 }
 
+function formatEventType(eventType: string) {
+    return eventType.charAt(0).toUpperCase() + eventType.slice(1)
+}
+
 export default function AdminEnquiriesPage() {
+    const [enquiries, setEnquiries] = useState<Enquiry[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState("")
+
     const [selected, setSelected] = useState<Enquiry | null>(null)
     const [isPanelMounted, setIsPanelMounted] = useState(false)
     const [isPanelVisible, setIsPanelVisible] = useState(false)
 
+    const fetchEnquiries = async () => {
+        setIsLoading(true)
+        setError("")
+
+        try {
+            const response = await fetch("/api/enquiries", {
+                cache: "no-store",
+            })
+
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Failed to load enquiries")
+            }
+
+            setEnquiries(result.data)
+        } catch (err) {
+            console.error("Failed to fetch enquiries:", err)
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Something went wrong loading enquiries"
+            )
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchEnquiries()
+    }, [])
+
+    const markAsRead = async (enquiry: Enquiry) => {
+        if (enquiry.status === "read") return
+
+        try {
+            const response = await fetch(`/api/enquiries/${enquiry._id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "read" }),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok || !result.success) return
+
+            setEnquiries((prev) =>
+                prev.map((item) =>
+                    item._id === enquiry._id ? { ...item, status: "read" } : item
+                )
+            )
+        } catch (err) {
+            console.error("Failed to mark enquiry as read:", err)
+        }
+    }
+
     const openPanel = (enquiry: Enquiry) => {
         setSelected(enquiry)
         setIsPanelMounted(true)
+        markAsRead(enquiry)
     }
 
     const closePanel = () => {
@@ -208,7 +208,9 @@ export default function AdminEnquiriesPage() {
                         </h2>
 
                         <p className="mt-1 font-[family-name:var(--font-inter)] text-sm text-[#8a8678]">
-                            {enquiries.length} submissions from the contact form
+                            {isLoading
+                                ? "Loading submissions..."
+                                : `${enquiries.length} submissions from the contact form`}
                         </p>
                     </div>
 
@@ -231,59 +233,101 @@ export default function AdminEnquiriesPage() {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border border-[#e3e0d6] bg-[#faf9f6]">
-                    <div className="hidden grid-cols-[1.3fr_1fr_1fr_0.9fr_0.7fr] gap-4 border-b border-[#e3e0d6] px-6 py-3 font-[family-name:var(--font-inter)] text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a8678] sm:grid">
-                        <span>Name</span>
-                        <span>Event Type</span>
-                        <span>Event Date</span>
-                        <span>Submitted</span>
-                        <span>Status</span>
+                {isLoading && (
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-[#e3e0d6] bg-[#faf9f6] py-20">
+                        <Loader2
+                            className="h-6 w-6 animate-spin text-[#8a8678]"
+                            strokeWidth={1.75}
+                        />
+                        <p className="font-[family-name:var(--font-inter)] text-sm text-[#8a8678]">
+                            Loading enquiries...
+                        </p>
                     </div>
+                )}
 
-                    <ul>
-                        {enquiries.map((enquiry) => (
-                            <li key={enquiry.id}>
-                                <button
-                                    type="button"
-                                    onClick={() => openPanel(enquiry)}
-                                    className="grid w-full grid-cols-1 gap-2 border-b border-[#e3e0d6] px-6 py-4 text-left transition-colors duration-150 last:border-b-0 hover:bg-[#f0eee3] sm:grid-cols-[1.3fr_1fr_1fr_0.9fr_0.7fr] sm:items-center sm:gap-4"
-                                >
-                                    <div>
-                                        <p className="font-[family-name:var(--font-cormorant)] text-lg font-medium text-[#1f211d]">
-                                            {enquiry.name}
-                                        </p>
-                                        <p className="font-[family-name:var(--font-inter)] text-xs text-[#8a8678] sm:hidden">
-                                            {enquiry.eventType} · {formatDate(enquiry.eventDate)}
-                                        </p>
-                                    </div>
+                {!isLoading && error && (
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 py-20 text-center">
+                        <p className="font-[family-name:var(--font-inter)] text-sm text-red-800">
+                            {error}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={fetchEnquiries}
+                            className="border border-red-800 px-5 py-2 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.12em] text-red-800 transition-colors duration-200 hover:bg-red-800 hover:text-white"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                )}
 
-                                    <span className="hidden font-[family-name:var(--font-inter)] text-sm text-[#55554e] sm:block">
-                                        {enquiry.eventType}
-                                    </span>
+                {!isLoading && !error && enquiries.length === 0 && (
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#d8d6cf] bg-[#faf9f6] py-20 text-center">
+                        <Inbox className="h-8 w-8 text-[#c9c5b8]" strokeWidth={1.5} />
+                        <p className="font-[family-name:var(--font-cormorant)] text-xl text-[#1f211d]">
+                            No enquiries yet
+                        </p>
+                        <p className="font-[family-name:var(--font-inter)] text-sm text-[#8a8678]">
+                            Submissions from the contact form will appear here.
+                        </p>
+                    </div>
+                )}
 
-                                    <span className="hidden font-[family-name:var(--font-inter)] text-sm text-[#55554e] sm:block">
-                                        {formatDate(enquiry.eventDate)}
-                                    </span>
+                {!isLoading && !error && enquiries.length > 0 && (
+                    <div className="overflow-hidden rounded-lg border border-[#e3e0d6] bg-[#faf9f6]">
+                        <div className="hidden grid-cols-[1.3fr_1fr_1fr_0.9fr_0.7fr] gap-4 border-b border-[#e3e0d6] px-6 py-3 font-[family-name:var(--font-inter)] text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a8678] sm:grid">
+                            <span>Name</span>
+                            <span>Event Type</span>
+                            <span>Event Date</span>
+                            <span>Submitted</span>
+                            <span>Status</span>
+                        </div>
 
-                                    <span className="hidden font-[family-name:var(--font-inter)] text-sm text-[#8a8678] sm:block">
-                                        {formatSubmittedAt(enquiry.submittedAt)}
-                                    </span>
+                        <ul>
+                            {enquiries.map((enquiry) => (
+                                <li key={enquiry._id}>
+                                    <button
+                                        type="button"
+                                        onClick={() => openPanel(enquiry)}
+                                        className="grid w-full grid-cols-1 gap-2 border-b border-[#e3e0d6] px-6 py-4 text-left transition-colors duration-150 last:border-b-0 hover:bg-[#f0eee3] sm:grid-cols-[1.3fr_1fr_1fr_0.9fr_0.7fr] sm:items-center sm:gap-4"
+                                    >
+                                        <div>
+                                            <p className="font-[family-name:var(--font-cormorant)] text-lg font-medium text-[#1f211d]">
+                                                {enquiry.name}
+                                            </p>
+                                            <p className="font-[family-name:var(--font-inter)] text-xs text-[#8a8678] sm:hidden">
+                                                {formatEventType(enquiry.eventType)} ·{" "}
+                                                {formatDate(enquiry.eventDate)}
+                                            </p>
+                                        </div>
 
-                                    <span>
-                                        <span
-                                            className={`inline-flex items-center rounded-full px-2.5 py-1 font-[family-name:var(--font-inter)] text-[10px] font-semibold uppercase tracking-[0.08em] ${enquiry.status === "New"
-                                                ? "bg-[#435236]/10 text-[#435236]"
-                                                : "bg-[#e3e0d6] text-[#8a8678]"
-                                                }`}
-                                        >
-                                            {enquiry.status}
+                                        <span className="hidden font-[family-name:var(--font-inter)] text-sm text-[#55554e] sm:block">
+                                            {formatEventType(enquiry.eventType)}
                                         </span>
-                                    </span>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+
+                                        <span className="hidden font-[family-name:var(--font-inter)] text-sm text-[#55554e] sm:block">
+                                            {formatDate(enquiry.eventDate)}
+                                        </span>
+
+                                        <span className="hidden font-[family-name:var(--font-inter)] text-sm text-[#8a8678] sm:block">
+                                            {formatSubmittedAt(enquiry.createdAt)}
+                                        </span>
+
+                                        <span>
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-2.5 py-1 font-[family-name:var(--font-inter)] text-[10px] font-semibold uppercase tracking-[0.08em] ${enquiry.status === "new"
+                                                    ? "bg-[#435236]/10 text-[#435236]"
+                                                    : "bg-[#e3e0d6] text-[#8a8678]"
+                                                    }`}
+                                            >
+                                                {enquiry.status}
+                                            </span>
+                                        </span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </main>
 
             {isPanelMounted && selected && (
@@ -319,7 +363,7 @@ export default function AdminEnquiriesPage() {
                             </p>
 
                             <span className="mt-2 inline-flex items-center rounded-full bg-[#435236]/10 px-2.5 py-1 font-[family-name:var(--font-inter)] text-[10px] font-semibold uppercase tracking-[0.08em] text-[#435236]">
-                                {selected.eventType}
+                                {formatEventType(selected.eventType)}
                             </span>
 
                             <div className="mt-6 space-y-4">
@@ -330,22 +374,26 @@ export default function AdminEnquiriesPage() {
                                     </a>
                                 </div>
 
-                                <div className="flex items-center gap-3 font-[family-name:var(--font-inter)] text-sm text-[#35352e]">
-                                    <Phone className="h-4 w-4 text-[#8a8678]" strokeWidth={1.75} />
-                                    <a href={`tel:${selected.phone}`} className="hover:underline">
-                                        {selected.phone}
-                                    </a>
-                                </div>
+                                {selected.phone && (
+                                    <div className="flex items-center gap-3 font-[family-name:var(--font-inter)] text-sm text-[#35352e]">
+                                        <Phone className="h-4 w-4 text-[#8a8678]" strokeWidth={1.75} />
+                                        <a href={`tel:${selected.phone}`} className="hover:underline">
+                                            {selected.phone}
+                                        </a>
+                                    </div>
+                                )}
 
                                 <div className="flex items-center gap-3 font-[family-name:var(--font-inter)] text-sm text-[#35352e]">
                                     <Calendar className="h-4 w-4 text-[#8a8678]" strokeWidth={1.75} />
                                     {formatDate(selected.eventDate)}
                                 </div>
 
-                                <div className="flex items-center gap-3 font-[family-name:var(--font-inter)] text-sm text-[#35352e]">
-                                    <MapPin className="h-4 w-4 text-[#8a8678]" strokeWidth={1.75} />
-                                    {selected.venue}
-                                </div>
+                                {selected.venue && (
+                                    <div className="flex items-center gap-3 font-[family-name:var(--font-inter)] text-sm text-[#35352e]">
+                                        <MapPin className="h-4 w-4 text-[#8a8678]" strokeWidth={1.75} />
+                                        {selected.venue}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-8 border-t border-[#e3e0d6] pt-6">
@@ -359,7 +407,7 @@ export default function AdminEnquiriesPage() {
                             </div>
 
                             <p className="mt-8 font-[family-name:var(--font-inter)] text-xs text-[#8a8678]">
-                                Submitted {formatSubmittedAt(selected.submittedAt)}
+                                Submitted {formatSubmittedAt(selected.createdAt)}
                             </p>
                         </div>
 
