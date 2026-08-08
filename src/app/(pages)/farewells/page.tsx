@@ -47,12 +47,12 @@ export default function FarewellsPage() {
                     initial={{ scale: 1.15 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                    src="/farewelbg.png"
+                    src="/farewellbg.png"
                     alt="Floral arrangement"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
 
-                <div className="absolute inset-0 md:bg-black/40 bg-black/35" />
+                <div className="absolute inset-0 md:bg-black/0 bg-black/35" />
 
 
                 <motion.div
