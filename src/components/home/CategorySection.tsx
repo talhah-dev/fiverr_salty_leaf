@@ -52,7 +52,7 @@ export default function CategorySection() {
                             className="absolute inset-0 h-full w-full object-cover"
                         />
 
-                        <div className="absolute inset-0 bg-black/10 transition-colors duration-500 group-hover:bg-black/20" />
+                        <div className="absolute inset-0 bg-black/20 transition-colors duration-500 group-hover:bg-black/20" />
 
                         <div className="absolute inset-0 flex items-center justify-center">
                             <h2 className="font-[family-name:var(--font-cormorant)] text-5xl font-light uppercase tracking-[-0.03em] text-white sm:text-6xl lg:text-[68px]">
