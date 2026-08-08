@@ -93,7 +93,7 @@ export default function ContactSection() {
 
                         <div className="flex items-center gap-3">
                             <MotionLink
-                                href="#"
+                                href="https://www.instagram.com/saltyleafflorist/"
                                 aria-label="Instagram"
                                 whileHover={{ scale: 1.15, opacity: 0.7 }}
                                 transition={{ duration: 0.3 }}
@@ -105,7 +105,7 @@ export default function ContactSection() {
                             </MotionLink>
 
                             <MotionLink
-                                href="#"
+                                href="https://www.facebook.com/share/1BYPQyTyBR/?mibextid=wwXIfr"
                                 aria-label="Facebook"
                                 whileHover={{ scale: 1.15, opacity: 0.7 }}
                                 transition={{ duration: 0.3 }}

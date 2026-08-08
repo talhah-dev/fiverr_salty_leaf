@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar"
 import Link from "next/link"
 import React from "react"
 import { motion } from "motion/react"
+import GallerySection from "@/components/GallerySection"
 
 const MotionLink = motion.create(Link)
 
@@ -323,6 +324,8 @@ export default function EventsPage() {
                     </motion.div>
                 </div>
             </section>
+
+            <GallerySection />
 
             <section className="bg-[#faf9f6] px-6 py-20 sm:px-10 lg:px-14 lg:py-24">
                 <div className="mx-auto max-w-[1400px]">
