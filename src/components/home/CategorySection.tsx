@@ -1,7 +1,9 @@
 "use client"
 
-import React from "react"
 import { motion } from "motion/react"
+import Link from "next/link"
+
+const MotionLink = motion.create(Link)
 
 const categories = [
     {
@@ -32,7 +34,7 @@ export default function CategorySection() {
                 className="grid w-full grid-cols-1 md:grid-cols-3"
             >
                 {categories.map((category) => (
-                    <motion.a
+                    <MotionLink
                         key={category.title}
                         href={category.href}
                         variants={{
@@ -57,7 +59,7 @@ export default function CategorySection() {
                                 {category.title}
                             </h2>
                         </div>
-                    </motion.a>
+                    </MotionLink>
                 ))}
             </motion.div>
         </section>

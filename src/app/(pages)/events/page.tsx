@@ -4,6 +4,9 @@ import Link from "next/link"
 import React from "react"
 import { motion } from "motion/react"
 
+const MotionLink = motion.create(Link)
+
+
 const offers = [
     {
         title: "Corporate Events",
@@ -235,7 +238,7 @@ export default function EventsPage() {
                     initial={{ scale: 1.15 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                    src="/event1.jpeg"
+                    src="/vinyard.png"
                     alt="Elegant event setting"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -429,7 +432,7 @@ export default function EventsPage() {
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-                    src="/event2.jpeg"
+                    src="/entrance.png"
                     alt="Beautiful event floral arrangement"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -437,8 +440,8 @@ export default function EventsPage() {
                 <div className="absolute inset-0 bg-black/30" />
 
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <motion.a
-                        href="#enquire"
+                    <MotionLink
+                        href="/contact"
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, amount: 0.5 }}
@@ -447,7 +450,7 @@ export default function EventsPage() {
                         className="font-[family-name:var(--font-cormorant)] text-5xl font-light uppercase tracking-[-0.02em] text-white sm:text-6xl lg:text-7xl"
                     >
                         Enquire
-                    </motion.a>
+                    </MotionLink>
                 </div>
             </section>
         </main>

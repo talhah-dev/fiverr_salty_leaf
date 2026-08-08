@@ -6,6 +6,8 @@ import { LuInstagram } from "react-icons/lu"
 import { PiFacebookLogo } from "react-icons/pi"
 import Link from "next/link"
 
+const MotionLink = motion.create(Link)
+
 export default function ContactSection() {
     return (
         <section className="w-full bg-[#435236] px-6 py-24 sm:px-10 sm:py-28 lg:px-14 lg:py-40">
@@ -90,7 +92,7 @@ export default function ContactSection() {
                         </h3>
 
                         <div className="flex items-center gap-3">
-                            <motion.a
+                            <MotionLink
                                 href="#"
                                 aria-label="Instagram"
                                 whileHover={{ scale: 1.15, opacity: 0.7 }}
@@ -100,9 +102,9 @@ export default function ContactSection() {
                                     className="h-8 w-8"
                                     strokeWidth={1.5}
                                 />
-                            </motion.a>
+                            </MotionLink>
 
-                            <motion.a
+                            <MotionLink
                                 href="#"
                                 aria-label="Facebook"
                                 whileHover={{ scale: 1.15, opacity: 0.7 }}
@@ -112,7 +114,7 @@ export default function ContactSection() {
                                     className="h-9 w-9"
                                     strokeWidth={1.5}
                                 />
-                            </motion.a>
+                            </MotionLink>
                         </div>
                     </motion.div>
                 </motion.div>

@@ -79,7 +79,7 @@ export default function ContactPage() {
                     initial={{ scale: 1.15 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                    src="/contactbg.png"
+                    src="/event1.jpeg"
                     alt="Floral wedding arrangement"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -433,7 +433,7 @@ export default function ContactPage() {
                     whileInView={{ scale: 1 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-                    src="/farewellbg.png"
+                    src="/event2.jpeg"
                     alt="Beautiful flowers"
                     className="absolute inset-0 h-full w-full object-cover"
                 />

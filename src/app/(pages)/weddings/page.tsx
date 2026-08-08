@@ -10,6 +10,8 @@ const fadeUp = {
     visible: { opacity: 1, y: 0 },
 }
 
+const MotionLink = motion.create(Link)
+
 export default function page() {
     return (
         <main>
@@ -285,7 +287,7 @@ export default function page() {
                 <div className="absolute inset-0 bg-black/30" />
 
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <motion.a
+                    <MotionLink
                         href="#enquire"
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -295,7 +297,7 @@ export default function page() {
                         className="font-[family-name:var(--font-cormorant)] text-5xl font-light uppercase tracking-[-0.02em] text-white sm:text-6xl lg:text-7xl"
                     >
                         Enquire
-                    </motion.a>
+                    </MotionLink>
                 </div>
             </section>
         </main>
