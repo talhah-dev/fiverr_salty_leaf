@@ -16,15 +16,14 @@ export default function HomePg() {
                     initial={{ scale: 1.15 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                    src="/farewelbg.png"
+                    src="/homebg.png"
                     alt="Wedding ceremony"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
-
-                <div className="absolute inset-0 md:bg-black/30 bg-black/35" />
-
-
             </section>
+
+            <div className="absolute inset-0 md:bg-black/10 bg-black/35" />
+
 
             <CategorySection />
 

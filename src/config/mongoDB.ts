@@ -1,4 +1,12 @@
 import mongoose from "mongoose"
+import dns from "node:dns"
+
+// Works around a Node.js regression on Windows (v24.13.0+) where
+// mongodb+srv:// DNS lookups fail with "querySrv ECONNREFUSED" even
+// though DNS itself is working fine. Forcing public resolvers fixes it.
+if (process.platform === "win32") {
+    dns.setServers(["1.1.1.1", "8.8.8.8"])
+}
 
 const MONGODB_URI = process.env.MONGODB_URI
 

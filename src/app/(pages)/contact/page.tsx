@@ -20,6 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { toast } from "@/components/ui/toast"
 
 type FormData = {
     name: string
@@ -38,6 +39,7 @@ const fadeUp = {
 export default function ContactPage() {
     const [date, setDate] = useState<Date>()
     const [submitted, setSubmitted] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [formData, setFormData] = useState<FormData>({
         name: "",
@@ -59,17 +61,67 @@ export default function ContactPage() {
         }))
     }
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        console.log("Enquiry Form Data:", {
-            ...formData,
-            eventDate: date ? format(date, "yyyy-MM-dd") : "",
-        })
+        if (!formData.eventType) {
+            toast.add({
+                title: "Event type required",
+                description: "Please select an event type before submitting.",
+            })
+            return
+        }
 
-        setSubmitted(true)
+        setIsSubmitting(true)
+
+        try {
+            const response = await fetch("/api/enquiries", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ...formData,
+                    eventDate: date ? format(date, "yyyy-MM-dd") : "",
+                }),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Something went wrong")
+            }
+
+            toast.add({
+                title: "Enquiry sent",
+                description: "Thanks for reaching out, we'll be in touch soon.",
+            })
+
+            setSubmitted(true)
+
+            setFormData({
+                name: "",
+                email: "",
+                phone: "",
+                eventType: "",
+                venue: "",
+                message: "",
+            })
+            setDate(undefined)
+        } catch (error) {
+            console.error("Enquiry submission failed:", error)
+
+            toast.add({
+                title: "Couldn't send enquiry",
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Please check your connection and try again.",
+            })
+        } finally {
+            setIsSubmitting(false)
+        }
     }
-
     return (
         <main className="bg-[#f8f5ef]">
             <section className="relative min-h-[55vh] w-full overflow-hidden">
@@ -407,22 +459,27 @@ export default function ContactPage() {
                                     <motion.button
                                         key="submit"
                                         type="submit"
+                                        disabled={isSubmitting}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                        whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                                        whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                                         transition={{ duration: 0.4, ease: "easeOut" }}
-                                        className="group inline-flex items-center gap-5 border border-[#25251f] px-8 py-4 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.15em] text-[#25251f] transition-colors duration-300 hover:bg-[#25251f] hover:text-[#f8f5ef]"
+                                        className="group inline-flex items-center gap-5 border border-[#25251f] px-8 py-4 font-[family-name:var(--font-inter)] text-xs font-semibold uppercase tracking-[0.15em] text-[#25251f] transition-colors duration-300 hover:bg-[#25251f] hover:text-[#f8f5ef] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#25251f]"
                                     >
-                                        Send Enquiry
+                                        {isSubmitting ? "Sending..." : "Send Enquiry"}
 
-                                        <span className="transition-transform duration-300 group-hover:translate-x-1">
-                                            →
-                                        </span>
+                                        {!isSubmitting && (
+                                            <span className="transition-transform duration-300 group-hover:translate-x-1">
+                                                →
+                                            </span>
+                                        )}
                                     </motion.button>
                                 )}
                             </AnimatePresence>
                         </div>
+
+
                     </motion.form>
                 </div>
             </section>
