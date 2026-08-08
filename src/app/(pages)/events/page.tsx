@@ -326,7 +326,7 @@ export default function EventsPage() {
                 </div>
             </section>
 
-            <GallerySection />
+            {/* <GallerySection /> */}
 
             <section className="bg-[#faf9f6] px-6 py-20 sm:px-10 lg:px-14 lg:py-24">
                 <div className="mx-auto max-w-[1400px]">
