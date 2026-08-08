@@ -4,6 +4,7 @@ import React from "react"
 import { motion } from "motion/react"
 import { LuInstagram } from "react-icons/lu"
 import { PiFacebookLogo } from "react-icons/pi"
+import Link from "next/link"
 
 export default function ContactSection() {
     return (
@@ -55,12 +56,12 @@ export default function ContactSection() {
                             Phone
                         </h3>
 
-                        <a
+                        <Link
                             href="tel:0424469349"
                             className=" md:text-lg transition-opacity hover:opacity-60"
                         >
                             0424469349
-                        </a>
+                        </Link>
                     </motion.div>
 
                     <motion.div
@@ -72,12 +73,12 @@ export default function ContactSection() {
                             Email
                         </h3>
 
-                        <a
+                        <Link
                             href="mailto:florist@saltyleaf.com.au"
                             className="transition-opacity md:text-lg hover:opacity-60"
                         >
                             florist@saltyleaf.com.au
-                        </a>
+                        </Link>
                     </motion.div>
 
                     <motion.div
