@@ -1,10 +1,18 @@
-"use client"
-
+import type { Metadata } from "next"
 import React from "react"
-import { motion } from "motion/react"
 import Navbar from "@/components/Navbar"
 import CategorySection from "@/components/home/CategorySection"
 import ContactSection from "@/components/home/ContactSection"
+import Hero from "@/components/home/Hero"
+
+export const metadata: Metadata = {
+    title: "Florist in Mandurah, WA",
+    description:
+        "Salty Leaf is a Mandurah-based florist crafting thoughtful floral experiences for weddings, farewells and events. Bespoke, seasonal, made with care.",
+    alternates: {
+        canonical: "/",
+    },
+}
 
 export default function HomePg() {
     return (
@@ -12,17 +20,9 @@ export default function HomePg() {
             <section className="relative h-screen min-h-[650px] w-full overflow-hidden">
                 <Navbar />
 
-                <motion.img
-                    initial={{ scale: 1.15 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-                    src="/homebg.png"
-                    alt="Wedding ceremony"
-                    className="absolute inset-0 h-full w-full object-cover"
-                />
+                <Hero />
+                <div className="absolute inset-0 md:bg-black/10 bg-black/35" />
             </section>
-
-            <div className="absolute inset-0 md:bg-black/10 bg-black/35" />
 
 
             <CategorySection />

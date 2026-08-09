@@ -1,5 +1,9 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
 import { NextResponse } from "next/server"
+import jwt from "jsonwebtoken"
+import { cookies } from "next/headers"
+
+const JWT_SECRET = process.env.JWT_SECRET
 
 export async function POST(request: Request): Promise<NextResponse> {
     const body = (await request.json()) as HandleUploadBody
@@ -9,8 +13,18 @@ export async function POST(request: Request): Promise<NextResponse> {
             body,
             request,
             onBeforeGenerateToken: async (pathname) => {
-                // TODO: once admin auth is wired up, verify the session here
-                // and throw if the request isn't from a logged-in admin.
+                const cookieStore = await cookies()
+                const token = cookieStore.get("admin_session")?.value
+
+                if (!token || !JWT_SECRET) {
+                    throw new Error("Not authenticated")
+                }
+
+                try {
+                    jwt.verify(token, JWT_SECRET)
+                } catch {
+                    throw new Error("Invalid or expired session")
+                }
 
                 return {
                     allowedContentTypes: [

@@ -1,0 +1,16 @@
+{
+  "name": "Salty Leaf",
+  "short_name": "Salty Leaf",
+  "description": "Salty Leaf is a Mandurah-based florist crafting thoughtful floral experiences for weddings, farewells and events.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f5ef",
+  "theme_color": "#435236",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
