@@ -31,12 +31,22 @@ type AnalyticsData = {
     topPages: { path: string; views: number }[]
 }
 
+type DateRange = "7d" | "30d" | "90d" | "12m"
+
+const rangeLabels: Record<DateRange, string> = {
+    "7d": "7 Days",
+    "30d": "30 Days",
+    "90d": "90 Days",
+    "12m": "12 Months",
+}
+
 export default function AdminDashboardPage() {
     const router = useRouter()
 
     const [newEnquiryCount, setNewEnquiryCount] = useState<number | null>(null)
     const [isLoggingOut, setIsLoggingOut] = useState(false)
 
+    const [range, setRange] = useState<DateRange>("30d")
     const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
     const [isAnalyticsConnected, setIsAnalyticsConnected] = useState(false)
     const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(true)
@@ -62,7 +72,7 @@ export default function AdminDashboardPage() {
             setIsAnalyticsLoading(true)
 
             try {
-                const response = await fetch("/api/analytics", {
+                const response = await fetch(`/api/analytics?range=${range}`, {
                     cache: "no-store",
                 })
                 const result = await response.json()
@@ -87,7 +97,7 @@ export default function AdminDashboardPage() {
 
         fetchEnquiryCount()
         fetchAnalytics()
-    }, [])
+    }, [range])
 
     const handleLogout = async () => {
         setIsLoggingOut(true)
@@ -233,29 +243,47 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="mt-6 rounded-lg border border-[#e3e0d6] bg-[#faf9f6] p-6">
-                    <div className="mb-6 flex items-center justify-between">
+                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h3 className="font-[family-name:var(--font-cormorant)] text-2xl font-medium text-[#1f211d]">
                                 Google Analytics
                             </h3>
 
                             <p className="mt-1 font-[family-name:var(--font-inter)] text-xs text-[#8a8678]">
-                                Traffic overview, last 30 days
+                                Traffic overview, last {rangeLabels[range].toLowerCase()}
                             </p>
                         </div>
 
-                        <span
-                            className={`rounded-full px-3 py-1 font-[family-name:var(--font-inter)] text-[10px] font-medium uppercase tracking-[0.1em] ${isAnalyticsConnected
-                                ? "bg-[#435236]/10 text-[#435236]"
-                                : "bg-[#eeece3] text-[#8a8678]"
-                                }`}
-                        >
-                            {isAnalyticsLoading
-                                ? "Checking..."
-                                : isAnalyticsConnected
-                                    ? "Connected"
-                                    : "Not Connected"}
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <div className="flex rounded-md border border-[#e3e0d6] bg-[#f8f5ef] p-1">
+                                {(Object.keys(rangeLabels) as DateRange[]).map((key) => (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => setRange(key)}
+                                        className={`rounded px-3 py-1.5 font-[family-name:var(--font-inter)] text-xs font-medium transition-colors duration-200 ${range === key
+                                            ? "bg-[#435236] text-[#f5f0e7]"
+                                            : "text-[#8a8678] hover:text-[#55554e]"
+                                            }`}
+                                    >
+                                        {rangeLabels[key]}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <span
+                                className={`rounded-full px-3 py-1 font-[family-name:var(--font-inter)] text-[10px] font-medium uppercase tracking-[0.1em] ${isAnalyticsConnected
+                                    ? "bg-[#435236]/10 text-[#435236]"
+                                    : "bg-[#eeece3] text-[#8a8678]"
+                                    }`}
+                            >
+                                {isAnalyticsLoading
+                                    ? "Loading..."
+                                    : isAnalyticsConnected
+                                        ? "Connected"
+                                        : "Not Connected"}
+                            </span>
+                        </div>
                     </div>
 
                     {isAnalyticsLoading && (

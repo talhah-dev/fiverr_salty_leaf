@@ -85,7 +85,10 @@ export default function AdminGalleryPage() {
     }
 
     useEffect(() => {
-        fetchImages()
+        const load = async () => {
+            await fetchImages()
+        }
+        load()
     }, [])
 
     const addFiles = (fileList: FileList | null) => {

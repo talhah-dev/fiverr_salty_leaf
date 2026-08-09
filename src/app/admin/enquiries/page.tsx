@@ -96,7 +96,10 @@ export default function AdminEnquiriesPage() {
     }
 
     useEffect(() => {
-        fetchEnquiries()
+        const load = async () => {
+            await fetchEnquiries()
+        }
+        load()
     }, [])
 
     const markAsRead = async (enquiry: Enquiry) => {

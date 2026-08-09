@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs"
 import connectDB from "@/config/mongoDB"
 import Admin from "@/models/Admin"
 
-// EDIT THESE before running, then delete this file once the admin is created.
 const ADMIN_NAME = "Salty Leaf Admin"
 const ADMIN_EMAIL = "admin@saltyleaf.com"
 const ADMIN_PASSWORD = "12345678"

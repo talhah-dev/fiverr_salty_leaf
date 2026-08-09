@@ -1,9 +1,16 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { BetaAnalyticsDataClient } from "@google-analytics/data"
 
 const GA_PROPERTY_ID = process.env.GA_PROPERTY_ID
 const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_CLIENT_EMAIL
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY
+
+const RANGE_OPTIONS: Record<string, string> = {
+    "7d": "7daysAgo",
+    "30d": "30daysAgo",
+    "90d": "90daysAgo",
+    "12m": "365daysAgo",
+}
 
 function getClient() {
     if (!GOOGLE_CLIENT_EMAIL || !GOOGLE_PRIVATE_KEY) {
@@ -18,7 +25,7 @@ function getClient() {
     })
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         if (!GA_PROPERTY_ID) {
             return NextResponse.json(
@@ -38,11 +45,15 @@ export async function GET() {
             )
         }
 
+        const { searchParams } = new URL(request.url)
+        const rangeParam = searchParams.get("range") || "30d"
+        const startDate = RANGE_OPTIONS[rangeParam] ?? RANGE_OPTIONS["30d"]
+
         const client = getClient()
 
         const [summary] = await client.runReport({
             property: `properties/${GA_PROPERTY_ID}`,
-            dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+            dateRanges: [{ startDate, endDate: "today" }],
             metrics: [
                 { name: "activeUsers" },
                 { name: "averageSessionDuration" },
@@ -52,17 +63,25 @@ export async function GET() {
             ],
         })
 
-        const [dailyUsers] = await client.runReport({
+        // Use monthly buckets for the 12-month view so the chart stays readable,
+        // daily buckets for everything shorter.
+        const isYearView = rangeParam === "12m"
+
+        const [timelineReport] = await client.runReport({
             property: `properties/${GA_PROPERTY_ID}`,
-            dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
-            dimensions: [{ name: "date" }],
+            dateRanges: [{ startDate, endDate: "today" }],
+            dimensions: [{ name: isYearView ? "yearMonth" : "date" }],
             metrics: [{ name: "activeUsers" }],
-            orderBys: [{ dimension: { dimensionName: "date" } }],
+            orderBys: [
+                {
+                    dimension: { dimensionName: isYearView ? "yearMonth" : "date" },
+                },
+            ],
         })
 
         const [topPages] = await client.runReport({
             property: `properties/${GA_PROPERTY_ID}`,
-            dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+            dateRanges: [{ startDate, endDate: "today" }],
             dimensions: [{ name: "pagePath" }],
             metrics: [{ name: "screenPageViews" }],
             orderBys: [
@@ -80,7 +99,7 @@ export async function GET() {
         const engagementRate = Number(row?.[4]?.value ?? 0)
 
         const timeline =
-            dailyUsers.rows?.map((r) => ({
+            timelineReport.rows?.map((r) => ({
                 date: r.dimensionValues?.[0]?.value ?? "",
                 users: Number(r.metricValues?.[0]?.value ?? 0),
             })) ?? []
@@ -98,6 +117,7 @@ export async function GET() {
             {
                 success: true,
                 connected: true,
+                range: rangeParam,
                 data: {
                     activeUsers,
                     sessions,
